@@ -1,0 +1,223 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Base title="Bukti Pendaftaran" demoBanner noindex>
+  <div class="container-page py-12 lg:py-16">
+    <div id="not-found" class="mx-auto max-w-lg py-10 text-center" hidden>
+      <span class="mx-auto grid size-14 place-items-center rounded-full bg-navy-50 text-navy-800"><Icon name="info" class="size-7" /></span>
+      <h1 class="mt-5 text-2xl font-bold">Bukti pendaftaran tidak ditemukan</h1>
+      <p class="mt-2 leading-relaxed">Kode pendaftaran tidak ada di browser ini. Data demo hanya tersimpan di perangkat tempat Anda mendaftar.</p>
+      <a href="/daftar" class="btn-primary mt-6">Daftar Program</a>
+    </div>
+
+    <div id="receipt-wrap" class="mx-auto max-w-2xl" hidden>
+      <!-- Pesan status -->
+      <div class="no-print text-center">
+        <span id="status-icon" class="mx-auto grid size-16 place-items-center rounded-full"></span>
+        <h1 id="status-title" class="mt-5 text-3xl font-extrabold tracking-tight"></h1>
+        <p id="status-desc" class="mx-auto mt-3 max-w-lg text-lg leading-relaxed"></p>
+      </div>
+
+      <!-- Progres -->
+      <ol class="no-print mx-auto mt-10 grid max-w-lg grid-cols-3 text-center text-sm" aria-label="Progres pendaftaran">
+        {['Terdaftar', 'Pembayaran dikirim', 'Lunas'].map((label, i) => (
+          <li class="relative flex flex-col items-center gap-2" data-step={i}>
+            {i > 0 && <span class="absolute top-4 right-1/2 h-0.5 w-full -translate-y-1/2 bg-line" data-bar aria-hidden="true"></span>}
+            <span class="relative grid size-8 place-items-center rounded-full border-2 border-line bg-white font-bold" data-dot>{i + 1}</span>
+            <span class="font-medium" data-label>{label}</span>
+          </li>
+        ))}
+      </ol>
+
+      <!-- E-receipt -->
+      <article id="receipt" class="card mt-10 overflow-hidden print:mt-0 print:border-0" aria-labelledby="receipt-title">
+        <header class="flex items-center justify-between gap-4 border-b border-line p-6">
+          <div class="flex items-center gap-3">
+            <img src="/logo-mark.png" alt="" width="40" height="40" class="size-10" />
+            <div>
+              <p class="text-lg font-extrabold text-navy-800" translate="no">GITA</p>
+              <p class="text-xs">Pelatihan STEM untuk Dunia Industri</p>
+            </div>
+          </div>
+          <div class="text-right">
+            <h2 id="receipt-title" class="text-sm font-bold tracking-wide uppercase" data-receipt-title></h2>
+            <p class="font-mono text-sm font-semibold text-ink" data-kode translate="no"></p>
+          </div>
+        </header>
+
+        <div class="grid gap-6 p-6 sm:grid-cols-2">
+          <dl class="space-y-3 text-[0.95rem]">
+            <div><dt class="text-sm">Nama peserta</dt><dd class="font-semibold text-ink" data-nama></dd></div>
+            <div><dt class="text-sm">Email</dt><dd class="font-semibold break-all text-ink" data-email></dd></div>
+            <div><dt class="text-sm">Nomor HP</dt><dd class="font-semibold text-ink tabular-nums" data-hp></dd></div>
+            <div><dt class="text-sm">Institusi</dt><dd class="font-semibold text-ink" data-institusi></dd></div>
+          </dl>
+          <dl class="space-y-3 text-[0.95rem]">
+            <div><dt class="text-sm">Tanggal daftar</dt><dd class="font-semibold text-ink" data-created></dd></div>
+            <div data-paid-row hidden><dt class="text-sm">Tanggal bayar</dt><dd class="font-semibold text-ink" data-paid></dd></div>
+            <div data-method-row hidden><dt class="text-sm">Metode</dt><dd class="font-semibold text-ink" data-method></dd></div>
+            <div><dt class="text-sm">Status</dt><dd><span class="inline-flex rounded-full px-2.5 py-0.5 text-sm font-semibold" data-status-badge></span></dd></div>
+          </dl>
+        </div>
+
+        <table class="w-full border-t border-line text-left text-[0.95rem]">
+          <caption class="sr-only">Rincian biaya</caption>
+          <thead class="bg-canvas text-sm">
+            <tr><th scope="col" class="px-6 py-3 font-semibold">Program</th><th scope="col" class="px-6 py-3 text-right font-semibold">Biaya</th></tr>
+          </thead>
+          <tbody>
+            <tr class="border-t border-line">
+              <td class="px-6 py-4">
+                <span class="font-semibold text-ink" data-program></span>
+                <span class="block text-sm" data-program-meta></span>
+              </td>
+              <td class="px-6 py-4 text-right font-semibold text-ink tabular-nums" data-amount></td>
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr class="border-t border-line bg-canvas">
+              <th scope="row" class="px-6 py-4 font-bold text-ink">Total</th>
+              <td class="px-6 py-4 text-right text-xl font-extrabold text-ink tabular-nums" data-amount></td>
+            </tr>
+          </tfoot>
+        </table>
+
+        <footer class="border-t border-line p-6 text-xs leading-relaxed">
+          Dokumen ini dibuat dari situs demo GITA dan tidak berlaku sebagai bukti pembayaran resmi. Praktik offline dilaksanakan di <span data-location></span>. Jadwal kelas diinformasikan setelah pembayaran terverifikasi.
+        </footer>
+      </article>
+
+      <!-- Aksi -->
+      <div class="no-print mt-6 flex flex-col gap-3 sm:flex-row sm:justify-between">
+        <a href="/" class="btn-outline"><Icon name="arrow-left" class="size-4" />Kembali ke Beranda</a>
+        <div class="flex flex-col gap-3 sm:flex-row">
+          <a href="#" id="pay-link" class="btn-navy" hidden>Lanjutkan Pembayaran</a>
+          <button type="button" id="print-btn" class="btn-primary"><Icon name="printer" class="size-4" />Cetak / Simpan PDF</button>
+        </div>
+      </div>
+
+      <!-- Kontrol demo -->
+      <div id="demo-verify" class="no-print mt-8 rounded-2xl border border-dashed border-navy-200 bg-navy-50 p-5" hidden>
+        <p class="flex items-center gap-2 font-semibold text-ink"><Icon name="dashboard" class="size-4" />Kontrol demo</p>
+        <p class="mt-1 text-sm leading-relaxed">Pada situs sungguhan, admin memverifikasi pembayaran secara manual. Di mode demo, Anda bisa mensimulasikannya di sini atau melalui <a href="/admin" class="font-semibold text-navy-800 underline">panel admin</a>.</p>
+        <button type="button" id="verify-btn" class="btn-navy mt-4">Simulasikan Verifikasi Admin</button>
+      </div>
+    </div>
+  </div>
+</Base>
+
+<script>
+  import { getProgram, formatRupiah, SATUAN_HOURS } from '../data/programs';
+  import { LOCATION_NAME } from '../data/site';
+  import { find, update, formatDateTime, STATUS_LABEL, METHOD_LABEL, type Registration } from '../scripts/store';
+  import { iconSvg } from '../data/icons';
+
+  const kode = new URLSearchParams(location.search).get('kode');
+  const initial = find(kode);
+  const program = initial && getProgram(initial.programSlug);
+
+  const BADGE: Record<Registration['status'], string> = {
+    menunggu_pembayaran: 'bg-gold-50 text-navy-900',
+    menunggu_verifikasi: 'bg-navy-50 text-navy-800',
+    lunas: 'bg-sea-50 text-sea-700',
+  };
+
+  const fill = (sel: string, text: string) => document.querySelectorAll(sel).forEach((el) => (el.textContent = text));
+
+  function render(reg: Registration) {
+    if (!program) return;
+    const step = { menunggu_pembayaran: 0, menunggu_verifikasi: 1, lunas: 2 }[reg.status];
+    const icon = document.getElementById('status-icon')!;
+    const copy = {
+      menunggu_pembayaran: {
+        title: 'Pendaftaran tersimpan',
+        desc: 'Selesaikan pembayaran dalam 1×24 jam untuk mengamankan tempat Anda.',
+        icon: iconSvg('clock', 'size-8'),
+        cls: 'bg-gold-50 text-navy-900',
+      },
+      menunggu_verifikasi: {
+        title: 'Pembayaran sedang diverifikasi',
+        desc: 'Terima kasih! Admin akan mencocokkan pembayaran Anda dengan kode pendaftaran.',
+        icon: iconSvg('clock', 'size-8'),
+        cls: 'bg-navy-50 text-navy-800',
+      },
+      lunas: {
+        title: 'Pembayaran berhasil',
+        desc: `Selamat, Anda resmi terdaftar di ${program.name}. Informasi jadwal kelas akan dikirim ke email Anda.`,
+        icon: iconSvg('circle-check', 'size-8'),
+        cls: 'bg-sea-50 text-sea-600',
+      },
+    }[reg.status];
+
+    icon.className = `mx-auto grid size-16 place-items-center rounded-full ${copy.cls}`;
+    icon.innerHTML = copy.icon;
+    fill('#status-title', copy.title);
+    fill('#status-desc', copy.desc);
+
+    document.querySelectorAll<HTMLElement>('[data-step]').forEach((li) => {
+      const i = Number(li.dataset.step);
+      const done = i <= step;
+      const dot = li.querySelector<HTMLElement>('[data-dot]')!;
+      dot.className = `relative grid size-8 place-items-center rounded-full border-2 font-bold ${done ? 'border-sea-600 bg-sea-600 text-white' : 'border-line bg-white text-body'}`;
+      dot.innerHTML = done ? iconSvg('check', 'size-4') : String(i + 1);
+      li.querySelector<HTMLElement>('[data-label]')!.className = done ? 'font-semibold text-ink' : 'font-medium';
+      const bar = li.querySelector<HTMLElement>('[data-bar]');
+      if (bar) bar.className = `absolute top-4 right-1/2 h-0.5 w-full -translate-y-1/2 ${done ? 'bg-sea-600' : 'bg-line'}`;
+      if (i === step) li.setAttribute('aria-current', 'step');
+      else li.removeAttribute('aria-current');
+    });
+
+    fill('[data-receipt-title]', reg.status === 'lunas' ? 'Kwitansi Pembayaran' : 'Bukti Pendaftaran');
+    fill('[data-kode]', reg.kode);
+    fill('[data-nama]', reg.nama);
+    fill('[data-email]', reg.email);
+    fill('[data-hp]', reg.hp);
+    fill('[data-institusi]', reg.institusi);
+    fill('[data-created]', formatDateTime(reg.createdAt));
+    fill('[data-program]', program.name);
+    fill(
+      '[data-program-meta]',
+      reg.offerId === 'paket'
+        ? `${reg.offerLabel} · ${program.hours} jam · 1 bulan`
+        : `Pelatihan satuan: ${reg.offerLabel} · ${SATUAN_HOURS} jam · 2 minggu`,
+    );
+    fill('[data-location]', LOCATION_NAME);
+    fill('[data-amount]', formatRupiah(reg.amount));
+
+    const paidRow = document.querySelector<HTMLElement>('[data-paid-row]')!;
+    paidRow.hidden = !reg.paidAt;
+    if (reg.paidAt) fill('[data-paid]', formatDateTime(reg.paidAt));
+    const methodRow = document.querySelector<HTMLElement>('[data-method-row]')!;
+    methodRow.hidden = !reg.method;
+    if (reg.method) fill('[data-method]', METHOD_LABEL[reg.method]);
+
+    const badge = document.querySelector<HTMLElement>('[data-status-badge]')!;
+    badge.className = `inline-flex rounded-full px-2.5 py-0.5 text-sm font-semibold ${BADGE[reg.status]}`;
+    badge.textContent = STATUS_LABEL[reg.status];
+
+    const payLink = document.getElementById('pay-link') as HTMLAnchorElement;
+    payLink.hidden = reg.status !== 'menunggu_pembayaran';
+    payLink.href = `/pembayaran?kode=${encodeURIComponent(reg.kode)}`;
+    document.getElementById('demo-verify')!.hidden = reg.status !== 'menunggu_verifikasi';
+    document.title = `${reg.status === 'lunas' ? 'Kwitansi' : 'Bukti Pendaftaran'} ${reg.kode} — GITA`;
+  }
+
+  if (!initial || !program) {
+    document.getElementById('not-found')!.hidden = false;
+  } else {
+    document.getElementById('receipt-wrap')!.hidden = false;
+    render(initial);
+
+    document.getElementById('print-btn')!.addEventListener('click', () => window.print());
+    document.getElementById('verify-btn')!.addEventListener('click', () => {
+      const updated = update(initial.kode, { status: 'lunas', verifiedAt: new Date().toISOString() });
+      if (updated) {
+        render(updated);
+        document.getElementById('status-title')!.focus();
+      }
+    });
+    document.getElementById('status-title')!.tabIndex = -1;
+  }
+</script>

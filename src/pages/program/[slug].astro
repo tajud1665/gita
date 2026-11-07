@@ -1,0 +1,333 @@
+---
+import Base from '../../layouts/Base.astro';
+import Icon from '../../components/Icon.astro';
+import {
+  programs,
+  formatRupiah,
+  getOffers,
+  paketSaving,
+  PAKET_PRICE,
+  SATUAN_PRICE,
+  SATUAN_HOURS,
+  SATUAN_FORMAT,
+  type Program,
+} from '../../data/programs';
+import { programIcon } from '../../data/icons';
+import { contactLinks, LOCATION_NAME } from '../../data/site';
+
+export function getStaticPaths() {
+  return programs.map((program) => ({ params: { slug: program.slug }, props: { program } }));
+}
+
+const { program: p } = Astro.props as { program: Program };
+const others = programs.filter((x) => x.slug !== p.slug);
+const online = p.schedule.filter((s) => s.method === 'Online').reduce((n, s) => n + s.hours, 0);
+const offline = p.hours - online;
+const weeks = [1, 2, 3, 4].map((w) => ({ week: w, sessions: p.schedule.filter((s) => s.week === w) }));
+const offers = getOffers(p);
+const satuan = offers.filter((o) => !o.paket);
+const saving = paketSaving(p);
+const daftarHref = (offerId: string) => `/daftar?program=${p.slug}&pilihan=${offerId}`;
+---
+
+<Base title={p.name} description={p.tagline}>
+  <!-- Header program -->
+  <section class="bg-gradient-to-b from-navy-50 to-white">
+    <div class="container-page pt-8 pb-12 lg:pb-16">
+      <nav aria-label="Breadcrumb" class="text-sm">
+        <ol class="flex flex-wrap items-center gap-1.5">
+          <li><a href="/" class="hover:text-navy-800 hover:underline">Beranda</a></li>
+          <li aria-hidden="true">/</li>
+          <li><a href="/#program" class="hover:text-navy-800 hover:underline">Program</a></li>
+          <li aria-hidden="true">/</li>
+          <li aria-current="page" class="font-medium text-ink">{p.name}</li>
+        </ol>
+      </nav>
+
+      <div class="mt-8 flex items-start gap-5">
+        <span class="hidden size-16 shrink-0 place-items-center rounded-2xl bg-white text-sea-600 shadow-sm ring-1 ring-line sm:grid">
+          <Icon name={programIcon[p.code]} class="size-8" />
+        </span>
+        <div>
+          <p class="eyebrow">Program pelatihan</p>
+          <h1 class="mt-1 text-4xl font-extrabold tracking-tight sm:text-5xl">{p.name}</h1>
+          <p class="mt-4 max-w-2xl text-lg leading-relaxed">{p.tagline}</p>
+        </div>
+      </div>
+
+      <dl class="mt-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-line bg-line sm:grid-cols-4">
+        <div class="bg-white p-5"><dt class="flex items-center gap-2 text-sm"><Icon name="calendar" class="size-4" />Paket lengkap</dt><dd class="mt-1 text-lg font-bold text-ink">1 bulan · {p.hours} jam</dd></div>
+        <div class="bg-white p-5">
+          <dt class="flex items-center gap-2 text-sm"><Icon name="clock" class="size-4" />Pelatihan satuan</dt>
+          <dd class="mt-1 text-lg font-bold text-ink">{p.sellTracks ? `${satuan.length} pilihan · ${SATUAN_HOURS} jam` : 'Tidak tersedia'}</dd>
+        </div>
+        <div class="bg-white p-5"><dt class="flex items-center gap-2 text-sm"><Icon name="monitor" class="size-4" />Metode</dt><dd class="mt-1 text-lg font-bold text-ink">Online & offline</dd></div>
+        <div class="bg-white p-5"><dt class="flex items-center gap-2 text-sm"><Icon name="map-pin" class="size-4" />Praktik offline</dt><dd class="mt-1 text-lg font-bold text-ink">MCC Malang</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <div class="container-page grid gap-12 pb-20 lg:grid-cols-[1fr_20rem]">
+    <div class="min-w-0 space-y-16">
+      <!-- Tentang -->
+      <section aria-labelledby="tentang">
+        <h2 id="tentang" class="text-2xl font-bold sm:text-3xl">Tentang program</h2>
+        <div class="mt-4 space-y-4 text-[1.05rem] leading-relaxed">
+          {p.about.map((para) => <p>{para}</p>)}
+        </div>
+      </section>
+
+      <!-- Pilihan pendaftaran -->
+      <section id="pilihan" aria-labelledby="h-pilihan">
+        <h2 id="h-pilihan" class="text-2xl font-bold sm:text-3xl">Pilihan pendaftaran</h2>
+        <p class="mt-2 leading-relaxed">
+          {p.sellTracks ? 'Ambil paket lengkap, atau pilih satu pelatihan satuan.' : 'Program ini hanya tersedia sebagai paket lengkap.'}
+        </p>
+
+        <div class="mt-6 grid gap-5">
+          <!-- Paket -->
+          <article class="relative overflow-hidden rounded-2xl border-2 border-navy-800 bg-white">
+            {saving > 0 && (
+              <span class="absolute top-0 right-0 rounded-bl-xl bg-gold-500 px-3 py-1.5 text-sm font-bold text-navy-900">Hemat {saving}%</span>
+            )}
+            <div class="grid gap-6 p-6 md:grid-cols-[1fr_auto] md:items-end">
+              <div>
+                <h3 class="text-xl font-bold">Paket Lengkap</h3>
+                <p class="mt-1">
+                  {p.sellTracks ? `Semua ${p.tracks.length} pelatihan` : `${p.sessions} pertemuan mentoring`} · {p.hours} jam · 1 bulan
+                </p>
+                <ul class="mt-4 grid gap-2.5 sm:grid-cols-2">
+                  {p.sellTracks && p.tracks.map((t) => (
+                    <li class="flex gap-2.5"><Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" /><span>{t.name}</span></li>
+                  ))}
+                  <li class="flex gap-2.5"><Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" /><span>Proyek, evaluasi & ujian akhir program</span></li>
+                  <li class="flex gap-2.5"><Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" /><span>Sertifikat kelulusan program</span></li>
+                  <li class="flex gap-2.5"><Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" /><span>Kesempatan rekomendasi ke mitra industri</span></li>
+                </ul>
+              </div>
+              <div class="md:text-right">
+                {saving > 0 && <p class="text-sm line-through tabular-nums">{formatRupiah(SATUAN_PRICE * p.tracks.length)}</p>}
+                <p class="text-3xl font-extrabold text-ink tabular-nums">{formatRupiah(PAKET_PRICE)}</p>
+                <a href={daftarHref('paket')} class="btn-primary mt-4 w-full md:w-auto">Daftar Paket Lengkap <Icon name="arrow-right" class="size-4" /></a>
+              </div>
+            </div>
+          </article>
+
+          <!-- Satuan -->
+          {p.sellTracks && (
+            <div class="grid gap-4 md:grid-cols-3">
+              {satuan.map((o, i) => (
+                <article class="card flex flex-col p-5">
+                  <p class="text-xs font-semibold tracking-wide text-sea-600 uppercase">Satuan</p>
+                  <h3 class="mt-1 font-bold">{o.label}</h3>
+                  <p class="mt-1 flex-1 text-sm leading-relaxed">{p.tracks[i].desc}</p>
+                  <p class="mt-4 flex items-center gap-1.5 text-sm"><Icon name="clock" class="size-4" />{SATUAN_HOURS} jam · 2 minggu</p>
+                  <p class="mt-1 text-xl font-extrabold text-ink tabular-nums">{formatRupiah(o.price)}</p>
+                  <a href={daftarHref(o.id)} class="btn-outline mt-4 w-full">Daftar Pelatihan Ini</a>
+                </article>
+              ))}
+            </div>
+          )}
+          {p.sellTracks && (
+            <p class="flex gap-2 text-sm leading-relaxed">
+              <Icon name="info" class="mt-0.5 size-4 shrink-0" />
+              <span>Pelatihan satuan: {SATUAN_FORMAT}. Termasuk modul, kuis, forum diskusi, dan sertifikat per pelatihan.</span>
+            </p>
+          )}
+        </div>
+      </section>
+
+      <!-- Materi -->
+      <section aria-labelledby="materi">
+        <h2 id="materi" class="text-2xl font-bold sm:text-3xl">{p.tracksLabel}</h2>
+        <p class="mt-2 leading-relaxed">{p.tracksIntro}</p>
+        <div class="mt-6 space-y-5">
+          {p.tracks.map((t, i) => (
+            <article class="card overflow-hidden">
+              <header class="flex items-start gap-4 border-b border-line bg-canvas p-5 sm:p-6">
+                <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-navy-800 text-sm font-bold text-white">{i + 1}</span>
+                <div class="flex-1">
+                  <h3 class="text-lg font-bold">{t.name}</h3>
+                  <p class="mt-1 leading-relaxed">{t.desc}</p>
+                </div>
+              </header>
+              <div class:list={['grid gap-6 p-5 sm:p-6', t.outputs && 'md:grid-cols-[1.5fr_1fr]']}>
+                <div>
+                  <h4 class="text-sm font-semibold tracking-wide text-body uppercase">Materi</h4>
+                  <ul class="mt-3 space-y-3">
+                    {t.topics.map((tp) => (
+                      <li class="flex gap-3">
+                        <Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" />
+                        <span>
+                          <span class="font-semibold text-ink">{tp.title}</span>
+                          {tp.desc && <span class="block text-[0.95rem] leading-relaxed">{tp.desc}</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {t.outputs && (
+                  <div class="rounded-xl bg-gold-50 p-4">
+                    <h4 class="text-sm font-semibold tracking-wide text-navy-900 uppercase">Hasil yang diperoleh</h4>
+                    <ul class="mt-3 space-y-2.5 text-navy-900">
+                      {t.outputs.map((o) => (
+                        <li class="flex gap-2.5"><Icon name="award" class="mt-0.5 size-4 shrink-0" /><span>{o}</span></li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <!-- Jadwal -->
+      <section aria-labelledby="jadwal">
+        <h2 id="jadwal" class="text-2xl font-bold sm:text-3xl">Jadwal paket lengkap</h2>
+        <p class="mt-2 leading-relaxed">
+          {p.sessions} pertemuan selama 4 minggu — {online} jam online dan {offline} jam offline.
+          {p.sellTracks && ` Pelatihan satuan memiliki jadwal tersendiri (${SATUAN_HOURS} jam dalam 2 minggu).`}
+        </p>
+        <ol class="mt-6 space-y-6">
+          {weeks.map((w) => (
+            <li>
+              <h3 class="text-sm font-semibold tracking-wide text-sea-600 uppercase">Minggu {w.week}</h3>
+              <ul class="mt-3 divide-y divide-line rounded-2xl border border-line">
+                {w.sessions.map((s) => (
+                  <li class="flex flex-col gap-2 p-4 sm:flex-row sm:items-center sm:gap-4">
+                    <span class="flex-1 font-medium text-ink">{s.title}</span>
+                    <span class="flex shrink-0 items-center gap-3 text-sm">
+                      <span
+                        class:list={[
+                          'inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold',
+                          s.method === 'Online' ? 'bg-navy-50 text-navy-800' : 'bg-sea-50 text-sea-700',
+                        ]}
+                      >
+                        <Icon name={s.method === 'Online' ? 'monitor' : 'map-pin'} class="size-3.5" />
+                        {s.method}
+                      </span>
+                      <span class="w-14 text-right tabular-nums">{s.hours} jam</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+        {p.scheduleNote && <p class="mt-4 flex gap-2 text-sm leading-relaxed"><Icon name="info" class="mt-0.5 size-4 shrink-0" />{p.scheduleNote}</p>}
+      </section>
+
+      <!-- Penilaian -->
+      <section aria-labelledby="penilaian">
+        <h2 id="penilaian" class="text-2xl font-bold sm:text-3xl">Penilaian & kelulusan</h2>
+        <div class:list={['mt-6 grid gap-5', p.assessment && 'md:grid-cols-2']}>
+          {p.assessment && (
+            <div class="card p-5 sm:p-6">
+              <h3 class="font-bold">Komponen penilaian paket</h3>
+              <ul class="mt-4 space-y-4">
+                {p.assessment.map((a) => (
+                  <li>
+                    <div class="flex justify-between gap-4 text-[0.95rem]">
+                      <span>{a.component}</span>
+                      <span class="font-bold text-ink tabular-nums">{a.weight}%</span>
+                    </div>
+                    <div class="mt-1.5 h-2 rounded-full bg-navy-50" role="presentation">
+                      <div class="h-2 rounded-full bg-sea-500" style={`width:${a.weight}%`}></div>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          <div class="card p-5 sm:p-6">
+            <h3 class="font-bold">Syarat kelulusan</h3>
+            <ul class="mt-4 space-y-3">
+              {p.requirements.map((r) => (
+                <li class="flex gap-3"><Icon name="circle-check" class="mt-0.5 size-5 shrink-0 text-sea-600" /><span>{r}</span></li>
+              ))}
+            </ul>
+            {p.sellTracks && <p class="mt-4 border-t border-line pt-4 text-sm leading-relaxed">Syarat nilai dan kehadiran yang sama berlaku untuk sertifikat pelatihan satuan.</p>}
+          </div>
+        </div>
+      </section>
+
+      <!-- Fasilitas & hasil -->
+      <section aria-labelledby="fasilitas" class="grid gap-10 md:grid-cols-2">
+        <div>
+          <h2 id="fasilitas" class="text-2xl font-bold">Fasilitas peserta</h2>
+          <ul class="mt-5 space-y-3">
+            {p.facilities.map((f) => (
+              <li class="flex gap-3"><Icon name="check" class="mt-1 size-4 shrink-0 text-sea-600" /><span>{f}</span></li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <h2 class="text-2xl font-bold">Hasil akhir</h2>
+          <ul class="mt-5 space-y-3">
+            {p.outcomes.map((o) => (
+              <li class="flex gap-3"><Icon name="award" class="mt-0.5 size-5 shrink-0 text-gold-600" /><span>{o}</span></li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {p.note && (
+        <p class="flex gap-3 rounded-xl border border-line bg-canvas p-4 text-sm leading-relaxed">
+          <Icon name="info" class="mt-0.5 size-4 shrink-0 text-navy-800" />
+          <span><strong class="text-ink">Catatan:</strong> {p.note}</span>
+        </p>
+      )}
+
+      <!-- Program lainnya -->
+      <nav aria-labelledby="h-lainnya">
+        <h2 id="h-lainnya" class="text-2xl font-bold">Program lainnya</h2>
+        <ul class="mt-5 grid gap-3 sm:grid-cols-2">
+          {others.map((o) => (
+            <li>
+              <a href={`/program/${o.slug}`} class="card group flex items-center gap-4 p-4 transition-colors hover:border-navy-200">
+                <span class="grid size-10 shrink-0 place-items-center rounded-lg bg-sea-50 text-sea-600"><Icon name={programIcon[o.code]} class="size-5" /></span>
+                <span class="flex-1 font-semibold text-ink group-hover:text-navy-700">{o.name}</span>
+                <Icon name="arrow-right" class="size-4 shrink-0 text-navy-800" />
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+    </div>
+
+    <!-- Kartu harga -->
+    <aside aria-label="Biaya dan pendaftaran">
+      <div class="card sticky top-24 p-6 shadow-[0_20px_50px_-30px_rgba(15,51,102,0.45)]">
+        <p class="text-sm font-medium">Paket lengkap</p>
+        <p class="mt-1 text-3xl font-extrabold text-ink tabular-nums">{formatRupiah(PAKET_PRICE)}</p>
+        <p class="text-sm">per peserta{saving > 0 && ` · hemat ${saving}%`}</p>
+        <ul class="mt-5 space-y-2.5 border-t border-line pt-5 text-[0.95rem]">
+          <li class="flex gap-2.5"><Icon name="clock" class="mt-0.5 size-4 shrink-0 text-sea-600" />{p.hours} jam dalam 1 bulan</li>
+          <li class="flex gap-2.5"><Icon name="monitor" class="mt-0.5 size-4 shrink-0 text-sea-600" />{online} jam online · {offline} jam offline</li>
+          <li class="flex gap-2.5"><Icon name="award" class="mt-0.5 size-4 shrink-0 text-sea-600" />Sertifikat bagi yang lulus</li>
+          <li class="flex gap-2.5">
+            <Icon name="map-pin" class="mt-0.5 size-4 shrink-0 text-sea-600" />
+            <span>{LOCATION_NAME} · <a href={contactLinks.maps} target="_blank" rel="noopener" class="font-semibold text-sea-600 hover:underline">Peta</a></span>
+          </li>
+        </ul>
+        <a href={daftarHref('paket')} class="btn-primary mt-6 w-full text-base">Daftar Paket Lengkap <Icon name="arrow-right" class="size-4" /></a>
+        {p.sellTracks && (
+          <a href="#pilihan" class="btn-outline mt-3 w-full">Lihat Pelatihan Satuan · {formatRupiah(SATUAN_PRICE)}</a>
+        )}
+        <p class="mt-3 text-center text-xs">Pembayaran via transfer bank atau QRIS</p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- CTA bawah layar kecil -->
+  <div class="no-print sticky bottom-0 z-30 border-t border-line bg-white/95 backdrop-blur lg:hidden">
+    <div class="container-page flex items-center justify-between gap-4 py-3">
+      <div>
+        <p class="text-xs">{p.sellTracks ? 'Mulai dari' : 'Paket lengkap'}</p>
+        <p class="font-extrabold text-ink tabular-nums">{formatRupiah(p.sellTracks ? SATUAN_PRICE : PAKET_PRICE)}</p>
+      </div>
+      <a href={p.sellTracks ? '#pilihan' : daftarHref('paket')} class="btn-primary">{p.sellTracks ? 'Pilih Paket' : 'Daftar'}</a>
+    </div>
+  </div>
+</Base>

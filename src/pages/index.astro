@@ -1,0 +1,288 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { programs, formatRupiah, PAKET_PRICE, SATUAN_PRICE, SATUAN_HOURS } from '../data/programs';
+import { programIcon } from '../data/icons';
+import { site, contactLinks, LOCATION_NAME } from '../data/site';
+
+const satuanCount = programs.filter((p) => p.sellTracks).reduce((n, p) => n + p.tracks.length, 0);
+
+const facilities = [
+  { icon: 'book-open', title: 'E-modul & materi', desc: 'Modul pembelajaran digital yang bisa diakses kapan saja.' },
+  { icon: 'clipboard-check', title: 'Kuis & ujian akhir', desc: 'Evaluasi berkala untuk mengukur pemahaman materi.' },
+  { icon: 'message', title: 'Forum & konsultasi', desc: 'Diskusi bersama mentor dan sesama peserta.' },
+  { icon: 'map-pin', title: 'Praktik offline', desc: 'Praktik langsung, simulasi, dan presentasi hasil.' },
+  { icon: 'award', title: 'Sertifikat kelulusan', desc: 'Bagi peserta yang memenuhi ketentuan kelulusan.' },
+  { icon: 'briefcase', title: 'Akses mitra industri', desc: 'Informasi peluang kerja dan kesempatan rekomendasi.' },
+] as const;
+
+const steps = [
+  { title: 'Pilih program', desc: 'Ambil paket lengkap atau satu pelatihan satuan sesuai kebutuhan Anda.' },
+  { title: 'Isi formulir', desc: 'Lengkapi data diri dan dapatkan kode pendaftaran unik.' },
+  { title: 'Lakukan pembayaran', desc: 'Bayar melalui transfer bank atau QRIS dalam 1×24 jam.' },
+  { title: 'Terima bukti & mulai belajar', desc: 'Simpan e-receipt dan tunggu informasi jadwal kelas.' },
+];
+
+const faqs = [
+  {
+    q: 'Apa beda paket lengkap dan pelatihan satuan?',
+    a: `Paket lengkap (${formatRupiah(PAKET_PRICE)}) berisi semua pelatihan dalam satu program selama satu bulan, termasuk proyek terpadu, ujian akhir, dan kesempatan rekomendasi ke mitra industri. Pelatihan satuan (${formatRupiah(SATUAN_PRICE)}) berisi satu pelatihan saja selama ${SATUAN_HOURS} jam dengan sertifikat per pelatihan. Industry Mentoring hanya tersedia sebagai paket.`,
+  },
+  {
+    q: 'Berapa lama durasi pelatihan?',
+    a: `Paket lengkap berlangsung satu bulan dengan total 24 hingga 48 jam tergantung program. Pelatihan satuan berlangsung ${SATUAN_HOURS} jam: 2 sesi online × 2 jam dan 1 praktik offline × 4 jam dalam 2 minggu.`,
+  },
+  {
+    q: 'Apakah program harus diikuti berurutan?',
+    a: 'Tidak. Setiap program berdiri sendiri, jadi Anda bebas memilih program mana saja sesuai kebutuhan.',
+  },
+  {
+    q: 'Bagaimana pembagian kelas online dan offline?',
+    a: 'Sesi online digunakan untuk penyampaian materi, teori, studi kasus, dan diskusi. Sesi offline difokuskan pada praktik langsung, simulasi, evaluasi, dan presentasi hasil.',
+  },
+  {
+    q: 'Di mana lokasi praktik offline?',
+    a: `Praktik offline dilaksanakan di ${site.contact.address}`,
+    link: { href: contactLinks.maps, label: 'Buka di Google Maps' },
+  },
+  {
+    q: 'Apa syarat mendapatkan sertifikat?',
+    a: 'Peserta yang memperoleh nilai akhir minimal 70 dan memenuhi kehadiran minimal 80% direkomendasikan untuk mendapatkan sertifikat kelulusan.',
+  },
+  {
+    q: 'Apakah ada jaminan langsung diterima bekerja?',
+    a: 'Tidak. Peserta berkesempatan direkomendasikan kepada perusahaan mitra berdasarkan hasil evaluasi dan kebutuhan mitra, namun keputusan penerimaan tetap mengikuti proses seleksi perusahaan.',
+  },
+  {
+    q: 'Bisakah saya mendaftar lebih dari satu program?',
+    a: 'Bisa. Satu pendaftaran berlaku untuk satu pilihan (paket atau pelatihan satuan), jadi silakan mendaftar kembali untuk setiap pilihan yang ingin Anda ikuti.',
+  },
+] as { q: string; a: string; link?: { href: string; label: string } }[];
+---
+
+<Base>
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-gradient-to-b from-navy-50 to-white">
+    <div class="pointer-events-none absolute -top-40 -right-40 size-[34rem] rounded-full border border-navy-100" aria-hidden="true"></div>
+    <div class="pointer-events-none absolute -top-20 -right-20 size-[24rem] rounded-full border border-sea-100" aria-hidden="true"></div>
+
+    <div class="container-page relative grid items-center gap-12 py-16 lg:grid-cols-[1.15fr_1fr] lg:py-24">
+      <div>
+        <p class="inline-flex items-center gap-2 rounded-full border border-sea-100 bg-white px-3 py-1 text-sm font-semibold text-sea-600">
+          <span class="size-2 rounded-full bg-gold-500" aria-hidden="true"></span>
+          Pelatihan STEM untuk dunia industri
+        </p>
+        <h1 class="mt-5 text-4xl leading-[1.1] font-extrabold tracking-tight sm:text-5xl lg:text-[3.5rem]">
+          Bekal nyata dari ruang kuliah<br class="hidden sm:block" /> ke <span class="text-sea-600">dunia industri</span>.
+        </h1>
+        <p class="mt-5 max-w-xl text-lg leading-relaxed">
+          GITA membekali mahasiswa dan fresh graduate STEM dengan wawasan global, keterampilan teknis, pengalaman proyek, kesiapan karier, dan pendampingan mentor industri.
+        </p>
+        <div class="mt-8 flex flex-col gap-3 sm:flex-row">
+          <a href="#program" class="btn-primary text-base">Lihat Program <Icon name="arrow-right" class="size-4" /></a>
+          <a href="/daftar" class="btn-outline text-base">Daftar Sekarang</a>
+        </div>
+        <dl class="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+          <div><dt class="text-sm">Program</dt><dd class="text-2xl font-bold text-ink">{programs.length}</dd></div>
+          <div><dt class="text-sm">Pelatihan satuan</dt><dd class="text-2xl font-bold text-ink">{satuanCount}</dd></div>
+          <div><dt class="text-sm">Mulai dari</dt><dd class="text-2xl font-bold text-ink tabular-nums">Rp499rb</dd></div>
+        </dl>
+      </div>
+
+      <!-- Visual orbit -->
+      <div class="relative mx-auto aspect-square w-[82%] max-w-md sm:w-full" aria-hidden="true">
+        <div class="absolute inset-0 rounded-full border-2 border-dashed border-navy-100"></div>
+        <div class="absolute inset-[14%] rounded-full border border-sea-100 bg-white/60"></div>
+        <div class="absolute inset-[34%] grid place-items-center rounded-full bg-white shadow-[0_20px_50px_-20px_rgba(15,51,102,0.35)]">
+          <img src="/logo-mark.png" alt="" width="128" height="128" class="w-3/4" fetchpriority="high" />
+        </div>
+        <div class="absolute inset-0">
+          {programs.map((p, i) => {
+            const angle = (i / programs.length) * 2 * Math.PI - Math.PI / 2;
+            const x = 50 + 50 * Math.cos(angle);
+            const y = 50 + 50 * Math.sin(angle);
+            return (
+              <div class="absolute -translate-x-1/2 -translate-y-1/2" style={`left:${x}%;top:${y}%`}>
+                <div class="grid size-14 place-items-center rounded-2xl border border-line bg-white text-navy-800 shadow-md sm:size-16">
+                  <Icon name={programIcon[p.code]} class="size-6 sm:size-7" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Program -->
+  <section id="program" class="py-20">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Program pelatihan</p>
+        <h2 class="section-title">Pilih program sesuai kebutuhan Anda</h2>
+        <p class="mt-4 text-lg leading-relaxed">
+          Setiap program berdiri sendiri. Ambil paket lengkap untuk pengalaman menyeluruh, atau pilih satu pelatihan satuan yang paling Anda butuhkan.
+        </p>
+      </div>
+
+      <ul class="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+        {programs.map((p) => (
+          <li>
+            <a
+              href={`/program/${p.slug}`}
+              class="group card flex h-full flex-col p-6 transition-[border-color,box-shadow] duration-200 hover:border-navy-200 hover:shadow-[0_12px_32px_-16px_rgba(15,51,102,0.35)]"
+            >
+              <span class="grid size-12 place-items-center rounded-xl bg-sea-50 text-sea-600 transition-colors group-hover:bg-navy-800 group-hover:text-white">
+                <Icon name={programIcon[p.code]} class="size-6" />
+              </span>
+              <span class="mt-5 block text-lg font-bold text-ink group-hover:text-navy-700">{p.name}</span>
+              <span class="mt-2 block flex-1 leading-relaxed">{p.tagline}</span>
+              <span class="mt-5 flex flex-wrap gap-2 text-sm">
+                {p.sellTracks
+                  ? p.tracks.map((t) => <span class="rounded-full bg-canvas px-2.5 py-1 font-medium text-ink">{t.name.replace(/ Project$/, '')}</span>)
+                  : <span class="rounded-full bg-canvas px-2.5 py-1 font-medium text-ink">{p.sessions} pertemuan mentoring</span>}
+              </span>
+              <span class="mt-5 flex items-end justify-between gap-4 border-t border-line pt-4">
+                <span>
+                  <span class="block text-xs">{p.sellTracks ? 'Satuan mulai' : 'Paket lengkap'}</span>
+                  <span class="block font-bold text-ink tabular-nums">{formatRupiah(p.sellTracks ? SATUAN_PRICE : PAKET_PRICE)}</span>
+                </span>
+                <span class="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-800">
+                  Lihat detail <Icon name="arrow-right" class="size-4 transition-transform duration-200 group-hover:translate-x-1" />
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+        <li class="flex flex-col justify-center rounded-2xl bg-navy-800 p-6 text-white">
+          <p class="text-sm font-semibold text-sea-300">Paket lengkap</p>
+          <p class="mt-1 text-3xl font-extrabold tabular-nums">{formatRupiah(PAKET_PRICE)}</p>
+          <p class="mt-3 leading-relaxed text-navy-100">Semua pelatihan dalam satu program selama 1 bulan, termasuk proyek terpadu, ujian akhir, dan kesempatan rekomendasi ke mitra industri.</p>
+          <a href="/daftar" class="btn-primary mt-5 self-start">Daftar Sekarang <Icon name="arrow-right" class="size-4" /></a>
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- Sistem belajar -->
+  <section id="sistem-belajar" class="bg-canvas py-20">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Sistem belajar</p>
+        <h2 class="section-title">Teori online, praktik offline</h2>
+        <p class="mt-4 text-lg leading-relaxed">Setiap program memadukan dua cara belajar agar materi tidak berhenti di layar.</p>
+      </div>
+      <div class="mt-10 grid gap-5 md:grid-cols-2">
+        <div class="card p-7">
+          <span class="grid size-12 place-items-center rounded-xl bg-navy-50 text-navy-800"><Icon name="monitor" class="size-6" /></span>
+          <h3 class="mt-5 text-xl font-bold">Pembelajaran online</h3>
+          <p class="mt-2 leading-relaxed">Penyampaian materi, teori, demonstrasi tools, studi kasus, dan diskusi bersama pemateri.</p>
+        </div>
+        <div class="card p-7">
+          <span class="grid size-12 place-items-center rounded-xl bg-sea-50 text-sea-600"><Icon name="map-pin" class="size-6" /></span>
+          <h3 class="mt-5 text-xl font-bold">Praktik offline</h3>
+          <p class="mt-2 leading-relaxed">Praktik langsung, simulasi, pengerjaan proyek, evaluasi, dan presentasi hasil di <strong class="font-semibold text-ink">{LOCATION_NAME}</strong>.</p>
+          <a href={contactLinks.maps} target="_blank" rel="noopener" class="mt-3 inline-flex min-h-11 items-center gap-1.5 font-semibold text-sea-600 hover:underline">
+            <Icon name="map-pin" class="size-4" />Buka di Google Maps
+          </a>
+        </div>
+      </div>
+
+      <h3 class="mt-16 text-2xl font-bold">Fasilitas peserta</h3>
+      <ul class="mt-6 grid gap-x-8 gap-y-7 sm:grid-cols-2 lg:grid-cols-3">
+        {facilities.map((f) => (
+          <li class="flex gap-4">
+            <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-white text-sea-600 ring-1 ring-line"><Icon name={f.icon} class="size-5" /></span>
+            <div>
+              <p class="font-semibold text-ink">{f.title}</p>
+              <p class="mt-1 text-[0.95rem] leading-relaxed">{f.desc}</p>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+
+  <!-- Kelulusan -->
+  <section class="py-20">
+    <div class="container-page grid items-center gap-10 lg:grid-cols-2">
+      <div>
+        <p class="eyebrow">Kelulusan</p>
+        <h2 class="section-title">Standar yang jelas sejak hari pertama</h2>
+        <p class="mt-4 text-lg leading-relaxed">
+          Penilaian dilakukan melalui kuis, tugas praktik, proyek, dan ujian akhir. Peserta yang memenuhi dua syarat berikut direkomendasikan untuk mendapatkan sertifikat kelulusan.
+        </p>
+      </div>
+      <div class="grid gap-4 sm:grid-cols-2">
+        <div class="rounded-2xl bg-navy-800 p-7 text-white">
+          <p class="text-5xl font-extrabold tabular-nums">70<span class="text-2xl text-navy-200">/100</span></p>
+          <p class="mt-3 font-semibold">Nilai akhir minimal</p>
+        </div>
+        <div class="rounded-2xl bg-sea-600 p-7 text-white">
+          <p class="text-5xl font-extrabold tabular-nums">80%</p>
+          <p class="mt-3 font-semibold">Kehadiran minimal</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Cara daftar -->
+  <section id="cara-daftar" class="bg-canvas py-20">
+    <div class="container-page">
+      <div class="max-w-2xl">
+        <p class="eyebrow">Cara daftar</p>
+        <h2 class="section-title">Empat langkah untuk mulai belajar</h2>
+      </div>
+      <ol class="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {steps.map((s, i) => (
+          <li class="card p-6">
+            <span class="grid size-10 place-items-center rounded-full bg-gold-500 font-bold text-navy-900">{i + 1}</span>
+            <h3 class="mt-4 text-lg font-bold">{s.title}</h3>
+            <p class="mt-2 leading-relaxed">{s.desc}</p>
+          </li>
+        ))}
+      </ol>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section id="faq" class="py-20">
+    <div class="container-page grid gap-10 lg:grid-cols-[1fr_1.6fr]">
+      <div>
+        <p class="eyebrow">FAQ</p>
+        <h2 class="section-title">Pertanyaan yang sering diajukan</h2>
+      </div>
+      <div class="divide-y divide-line border-y border-line">
+        {faqs.map((f) => (
+          <details class="group py-1">
+            <summary class="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 rounded-lg py-3 text-left font-semibold text-ink [&::-webkit-details-marker]:hidden">
+              {f.q}
+              <Icon name="chevron-down" class="size-5 shrink-0 text-navy-800 transition-transform duration-200 group-open:rotate-180" />
+            </summary>
+            <p class="pb-5 leading-relaxed">
+              {f.a}
+              {f.link && <a href={f.link.href} target="_blank" rel="noopener" class="ml-1 font-semibold text-sea-600 hover:underline">{f.link.label}</a>}
+            </p>
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="pb-20">
+    <div class="container-page">
+      <div class="relative overflow-hidden rounded-3xl bg-navy-800 px-6 py-14 text-center sm:px-12">
+        <div class="pointer-events-none absolute -bottom-24 -left-24 size-72 rounded-full border-2 border-sea-500/40" aria-hidden="true"></div>
+        <div class="pointer-events-none absolute -top-16 -right-16 size-56 rounded-full bg-gold-500/15" aria-hidden="true"></div>
+        <h2 class="relative text-3xl font-bold text-white sm:text-4xl">Siap memulai langkah pertama?</h2>
+        <p class="relative mx-auto mt-4 max-w-xl text-lg text-navy-100">Pilih paket lengkap atau pelatihan satuan dan daftar dalam beberapa menit.</p>
+        <div class="relative mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <a href="/daftar" class="btn-primary text-base">Daftar Sekarang <Icon name="arrow-right" class="size-4" /></a>
+          <a href="#program" class="btn border border-white/30 text-base text-white hover:bg-white/10">Lihat Semua Program</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+

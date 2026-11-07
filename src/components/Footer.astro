@@ -1,0 +1,44 @@
+---
+import Icon from './Icon.astro';
+import { programs } from '../data/programs';
+import { site, contactLinks } from '../data/site';
+---
+
+<footer class="no-print mt-auto bg-navy-950 text-navy-100">
+  <div class="container-page grid gap-10 py-14 md:grid-cols-[1.4fr_1fr_1fr]">
+    <div>
+      <a href="/" class="inline-flex items-center gap-2.5 rounded-lg">
+        <span class="grid size-11 place-items-center rounded-xl bg-white">
+          <img src="/logo-mark.png" alt="" width="32" height="32" class="size-8" loading="lazy" />
+        </span>
+        <span class="text-xl font-extrabold tracking-tight text-white" translate="no">GITA</span>
+      </a>
+      <p class="mt-4 max-w-sm text-sm leading-relaxed text-navy-200">{site.description}</p>
+    </div>
+
+    <nav aria-label="Program">
+      <h2 class="text-sm font-semibold tracking-wide text-white uppercase">Program</h2>
+      <ul class="mt-4 space-y-2.5 text-sm">
+        {programs.map((p) => (
+          <li><a href={`/program/${p.slug}`} class="text-navy-200 transition-colors hover:text-white">{p.name}</a></li>
+        ))}
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="text-sm font-semibold tracking-wide text-white uppercase">Kontak</h2>
+      <ul class="mt-4 space-y-3 text-sm text-navy-200">
+        <li><a href={contactLinks.whatsapp} target="_blank" rel="noopener" class="flex gap-2.5 hover:text-white hover:underline"><Icon name="phone" class="mt-0.5 size-4 shrink-0" /><span>WhatsApp: {site.contact.whatsapp}</span></a></li>
+        <li><a href={contactLinks.email} class="flex gap-2.5 break-all hover:text-white hover:underline"><Icon name="mail" class="mt-0.5 size-4 shrink-0" /><span>{site.contact.email}</span></a></li>
+        <li><a href={contactLinks.instagram} target="_blank" rel="noopener" class="flex gap-2.5 hover:text-white hover:underline"><Icon name="at-sign" class="mt-0.5 size-4 shrink-0" /><span>Instagram: {site.contact.instagram}</span></a></li>
+        <li><a href={contactLinks.maps} target="_blank" rel="noopener" class="flex gap-2.5 hover:text-white hover:underline"><Icon name="map-pin" class="mt-0.5 size-4 shrink-0" /><span>{site.contact.address}</span></a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="border-t border-white/10">
+    <div class="container-page flex flex-col gap-2 py-5 text-xs text-navy-200 sm:flex-row sm:items-center sm:justify-between">
+      <p>© {new Date().getFullYear()} GITA. Situs prototipe untuk keperluan demo.</p>
+      <a href="/admin" class="inline-flex items-center gap-1.5 hover:text-white"><Icon name="dashboard" class="size-3.5" />Panel admin (demo)</a>
+    </div>
+  </div>
+</footer>

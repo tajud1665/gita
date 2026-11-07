@@ -1,0 +1,157 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+---
+
+<Base title="Panel Admin" demoBanner noindex>
+  <div class="container-page py-12">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <p class="eyebrow">Panel admin · demo</p>
+        <h1 class="mt-1 text-3xl font-extrabold tracking-tight">Data pendaftar</h1>
+        <p class="mt-2 max-w-xl leading-relaxed">Menampilkan pendaftaran yang tersimpan di browser ini. Tidak ada login karena ini hanya simulasi.</p>
+      </div>
+      <button type="button" id="clear-btn" class="btn-outline text-red-700! hover:border-red-700! hover:bg-red-50!"><Icon name="trash" class="size-4" />Hapus semua data demo</button>
+    </div>
+
+    <dl class="mt-8 grid grid-cols-2 gap-4 lg:grid-cols-4" id="stats">
+      <div class="card p-5"><dt class="text-sm">Total pendaftar</dt><dd class="mt-1 text-3xl font-extrabold text-ink tabular-nums" data-stat="total">0</dd></div>
+      <div class="card p-5"><dt class="text-sm">Menunggu pembayaran</dt><dd class="mt-1 text-3xl font-extrabold text-ink tabular-nums" data-stat="menunggu_pembayaran">0</dd></div>
+      <div class="card p-5"><dt class="text-sm">Menunggu verifikasi</dt><dd class="mt-1 text-3xl font-extrabold text-ink tabular-nums" data-stat="menunggu_verifikasi">0</dd></div>
+      <div class="card p-5"><dt class="text-sm">Pendapatan lunas</dt><dd class="mt-1 text-2xl font-extrabold text-ink tabular-nums" data-stat="revenue">Rp 0</dd></div>
+    </dl>
+
+    <div class="mt-8 flex flex-wrap gap-2" role="group" aria-label="Filter status">
+      {[
+        ['semua', 'Semua'],
+        ['menunggu_pembayaran', 'Menunggu Pembayaran'],
+        ['menunggu_verifikasi', 'Menunggu Verifikasi'],
+        ['lunas', 'Lunas'],
+      ].map(([value, label], i) => (
+        <button
+          type="button"
+          data-filter={value}
+          aria-pressed={i === 0 ? 'true' : 'false'}
+          class="min-h-11 cursor-pointer rounded-full border border-line px-4 text-sm font-semibold transition-colors hover:border-navy-200 aria-pressed:border-navy-800 aria-pressed:bg-navy-800 aria-pressed:text-white"
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+
+    <div class="card mt-5 overflow-x-auto">
+      <table class="w-full min-w-[56rem] text-left text-[0.95rem]">
+        <caption class="sr-only">Daftar pendaftar</caption>
+        <thead class="bg-canvas text-sm">
+          <tr>
+            <th scope="col" class="px-4 py-3 font-semibold">Kode</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Peserta</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Program</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Tanggal</th>
+            <th scope="col" class="px-4 py-3 font-semibold">Status</th>
+            <th scope="col" class="px-4 py-3 text-right font-semibold">Aksi</th>
+          </tr>
+        </thead>
+        <tbody id="rows" class="divide-y divide-line"></tbody>
+      </table>
+      <div id="empty" class="px-6 py-14 text-center" hidden>
+        <p class="font-semibold text-ink">Belum ada data</p>
+        <p class="mt-1 text-sm">Coba daftar sebuah program untuk melihat datanya muncul di sini.</p>
+        <a href="/daftar" class="btn-primary mt-5">Buka Formulir Daftar</a>
+      </div>
+    </div>
+    <p class="sr-only" aria-live="polite" id="live"></p>
+  </div>
+</Base>
+
+<script>
+  import { getProgram, formatRupiah } from '../data/programs';
+  import { loadAll, update, remove, clearAll, formatDateTime, STATUS_LABEL, METHOD_LABEL, type Registration, type Status } from '../scripts/store';
+
+  const BADGE: Record<Status, string> = {
+    menunggu_pembayaran: 'bg-gold-50 text-navy-900',
+    menunggu_verifikasi: 'bg-navy-50 text-navy-800',
+    lunas: 'bg-sea-50 text-sea-700',
+  };
+
+  const FILTERS = ['semua', 'menunggu_pembayaran', 'menunggu_verifikasi', 'lunas'] as const;
+  const fromUrl = new URLSearchParams(location.search).get('status');
+  let filter: (typeof FILTERS)[number] = FILTERS.find((f) => f === fromUrl) ?? 'semua';
+  const rows = document.getElementById('rows')!;
+  const live = document.getElementById('live')!;
+
+  const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
+
+  function render() {
+    const all = loadAll();
+    const list = filter === 'semua' ? all : all.filter((r) => r.status === filter);
+
+    const stat = (k: string, v: string) => (document.querySelector(`[data-stat="${k}"]`)!.textContent = v);
+    stat('total', String(all.length));
+    stat('menunggu_pembayaran', String(all.filter((r) => r.status === 'menunggu_pembayaran').length));
+    stat('menunggu_verifikasi', String(all.filter((r) => r.status === 'menunggu_verifikasi').length));
+    stat('revenue', formatRupiah(all.filter((r) => r.status === 'lunas').reduce((n, r) => n + r.amount, 0)));
+
+    document.getElementById('empty')!.hidden = list.length > 0;
+    rows.innerHTML = list.map(row).join('');
+  }
+
+  function row(r: Registration) {
+    const program = getProgram(r.programSlug);
+    const k = esc(r.kode);
+    const verify =
+      r.status === 'menunggu_verifikasi'
+        ? `<button type="button" class="btn-navy min-h-9! px-3! py-1.5! text-sm!" data-action="verify" data-kode="${k}">Tandai Lunas</button>`
+        : '';
+    return `<tr>
+      <td class="px-4 py-3 align-top"><a href="/bukti?kode=${encodeURIComponent(r.kode)}" class="font-mono text-sm font-semibold text-navy-800 underline-offset-2 hover:underline">${k}</a></td>
+      <td class="px-4 py-3 align-top"><span class="font-semibold text-ink">${esc(r.nama)}</span><span class="block text-sm break-all">${esc(r.email)}</span><span class="block text-sm">${esc(r.institusi)}</span></td>
+      <td class="px-4 py-3 align-top"><span class="text-ink">${esc(program?.name ?? r.programSlug)}</span><span class="block text-sm">${r.offerId === 'paket' ? esc(r.offerLabel) : `Satuan: ${esc(r.offerLabel)}`}</span><span class="block text-sm tabular-nums">${formatRupiah(r.amount)}${r.method ? ` · ${METHOD_LABEL[r.method]}` : ''}</span></td>
+      <td class="px-4 py-3 align-top text-sm">${formatDateTime(r.createdAt)}</td>
+      <td class="px-4 py-3 align-top"><span class="inline-flex rounded-full px-2.5 py-0.5 text-sm font-semibold whitespace-nowrap ${BADGE[r.status]}">${STATUS_LABEL[r.status]}</span></td>
+      <td class="px-4 py-3 align-top"><div class="flex justify-end gap-2">${verify}<button type="button" class="inline-grid size-9 cursor-pointer place-items-center rounded-lg text-red-700 hover:bg-red-50" data-action="delete" data-kode="${k}" aria-label="Hapus pendaftaran ${k}"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button></div></td>
+    </tr>`;
+  }
+
+  rows.addEventListener('click', (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-action]');
+    if (!btn) return;
+    const kode = btn.dataset.kode!;
+    if (btn.dataset.action === 'verify') {
+      update(kode, { status: 'lunas', verifiedAt: new Date().toISOString() });
+      live.textContent = `Pendaftaran ${kode} ditandai lunas.`;
+    } else if (confirm(`Hapus pendaftaran ${kode}?`)) {
+      remove(kode);
+      live.textContent = `Pendaftaran ${kode} dihapus.`;
+    }
+    render();
+  });
+
+  document.querySelectorAll<HTMLButtonElement>('[data-filter]').forEach((b) =>
+    b.addEventListener('click', () => {
+      filter = b.dataset.filter as typeof filter;
+      syncFilterButtons();
+      const url = new URL(location.href);
+      if (filter === 'semua') url.searchParams.delete('status');
+      else url.searchParams.set('status', filter);
+      history.replaceState(null, '', url);
+      render();
+    }),
+  );
+
+  document.getElementById('clear-btn')!.addEventListener('click', () => {
+    if (confirm('Hapus semua data pendaftaran demo di browser ini?')) {
+      clearAll();
+      live.textContent = 'Semua data demo dihapus.';
+      render();
+    }
+  });
+
+  function syncFilterButtons() {
+    document.querySelectorAll<HTMLElement>('[data-filter]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.filter === filter)));
+  }
+
+  window.addEventListener('storage', render);
+  syncFilterButtons();
+  render();
+</script>

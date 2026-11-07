@@ -1,0 +1,95 @@
+---
+import Icon from './Icon.astro';
+import { programs } from '../data/programs';
+
+const path = Astro.url.pathname;
+const links = [
+  { href: '/#program', label: 'Program' },
+  { href: '/#sistem-belajar', label: 'Sistem Belajar' },
+  { href: '/#cara-daftar', label: 'Cara Daftar' },
+  { href: '/#faq', label: 'FAQ' },
+];
+---
+
+<header class="no-print sticky top-0 z-40 border-b border-line/80 bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/75">
+  <div class="container-page flex h-16 items-center justify-between gap-4">
+    <a href="/" class="flex items-center gap-2.5 rounded-lg" aria-label="GITA — Beranda">
+      <img src="/logo-mark.png" alt="" width="36" height="36" class="size-9" />
+      <span class="text-xl font-extrabold tracking-tight text-navy-800" translate="no">GITA</span>
+    </a>
+
+    <nav aria-label="Navigasi utama" class="hidden md:block">
+      <ul class="flex items-center gap-1">
+        {links.map((l) => (
+          <li>
+            <a href={l.href} class="rounded-lg px-3 py-2 text-[0.95rem] font-medium text-body transition-colors hover:bg-navy-50 hover:text-navy-800">
+              {l.label}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="flex items-center gap-2">
+      <a href="/daftar" class="btn-primary hidden sm:inline-flex" aria-current={path === '/daftar' ? 'page' : undefined}>
+        Daftar Sekarang
+      </a>
+      <button
+        type="button"
+        class="inline-flex size-11 cursor-pointer items-center justify-center rounded-xl text-navy-800 hover:bg-navy-50 md:hidden"
+        aria-controls="mobile-menu"
+        aria-expanded="false"
+        aria-label="Buka menu"
+        data-menu-toggle
+      >
+        <span data-icon-open><Icon name="menu" class="size-6" /></span>
+        <span data-icon-close hidden><Icon name="x" class="size-6" /></span>
+      </button>
+    </div>
+  </div>
+
+  <nav id="mobile-menu" aria-label="Navigasi seluler" class="border-t border-line bg-white md:hidden" hidden>
+    <ul class="container-page flex flex-col py-3">
+      {links.map((l) => (
+        <li>
+          <a href={l.href} class="flex min-h-11 items-center rounded-lg px-2 font-medium text-ink hover:bg-navy-50">{l.label}</a>
+        </li>
+      ))}
+      <li class="mt-2 border-t border-line pt-3 text-xs font-semibold tracking-wide text-body uppercase">Program</li>
+      {programs.map((p) => (
+        <li>
+          <a href={`/program/${p.slug}`} class="flex min-h-11 items-center rounded-lg px-2 text-body hover:bg-navy-50 hover:text-ink">
+            {p.name}
+          </a>
+        </li>
+      ))}
+      <li class="mt-3">
+        <a href="/daftar" class="btn-primary w-full">Daftar Sekarang</a>
+      </li>
+    </ul>
+  </nav>
+</header>
+
+<script>
+  const toggle = document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const menu = document.getElementById('mobile-menu');
+  if (toggle && menu) {
+    const set = (open: boolean) => {
+      menu.hidden = !open;
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Tutup menu' : 'Buka menu');
+      toggle.querySelector<HTMLElement>('[data-icon-open]')!.hidden = open;
+      toggle.querySelector<HTMLElement>('[data-icon-close]')!.hidden = !open;
+    };
+    toggle.addEventListener('click', () => set(menu.hidden));
+    menu.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('a')) set(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !menu.hidden) {
+        set(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>

@@ -1,0 +1,256 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { programs, formatRupiah, getOffers, PAKET_PRICE, SATUAN_PRICE } from '../data/programs';
+import { programIcon } from '../data/icons';
+
+const fields = [
+  { id: 'nama', label: 'Nama lengkap', type: 'text', autocomplete: 'name', placeholder: 'Contoh: Rina Saputri…' },
+  { id: 'email', label: 'Email', type: 'email', autocomplete: 'email', placeholder: 'nama@email.com…', spellcheck: false },
+  { id: 'hp', label: 'Nomor HP / WhatsApp', type: 'tel', autocomplete: 'tel', placeholder: '081234567890…', inputmode: 'tel' },
+  { id: 'institusi', label: 'Kampus / institusi', type: 'text', autocomplete: 'organization', placeholder: 'Contoh: Universitas Indonesia…' },
+] as const;
+---
+
+<Base title="Daftar Program" demoBanner noindex>
+  <div class="container-page grid gap-10 py-12 lg:grid-cols-[1fr_22rem] lg:py-16">
+    <div>
+      <p class="eyebrow">Langkah 1 dari 2</p>
+      <h1 class="mt-1 text-3xl font-extrabold tracking-tight sm:text-4xl">Daftar program</h1>
+      <p class="mt-3 max-w-xl text-lg leading-relaxed">Isi data diri Anda. Setelah itu Anda akan mendapatkan kode pendaftaran dan instruksi pembayaran.</p>
+
+      <form id="form-daftar" class="mt-10 space-y-10" novalidate>
+        <fieldset>
+          <legend class="text-lg font-bold text-ink">Pilih program</legend>
+          <div class="mt-4 grid gap-3">
+            {programs.map((p) => (
+              <label class="group flex cursor-pointer items-center gap-4 rounded-2xl border border-line bg-white p-4 transition-colors hover:border-navy-200 has-[:checked]:border-navy-800 has-[:checked]:bg-navy-50 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-sea-600">
+                <input type="radio" name="program" value={p.slug} class="sr-only" required />
+                <span class="grid size-11 shrink-0 place-items-center rounded-xl bg-sea-50 text-sea-600 group-has-[:checked]:bg-navy-800 group-has-[:checked]:text-white">
+                  <Icon name={programIcon[p.code]} class="size-5" />
+                </span>
+                <span class="flex-1">
+                  <span class="block font-semibold text-ink">{p.name}</span>
+                  <span class="block text-sm">{p.sellTracks ? 'Paket atau satuan' : 'Paket saja'}</span>
+                </span>
+                <span class="text-right text-sm">
+                  <span class="block">{p.sellTracks ? 'mulai' : 'paket'}</span>
+                  <span class="block font-bold text-ink tabular-nums">{formatRupiah(p.sellTracks ? SATUAN_PRICE : PAKET_PRICE)}</span>
+                </span>
+                <span class="grid size-5 shrink-0 place-items-center rounded-full border-2 border-navy-200 group-has-[:checked]:border-navy-800" aria-hidden="true">
+                  <span class="size-2.5 rounded-full bg-navy-800 opacity-0 group-has-[:checked]:opacity-100"></span>
+                </span>
+              </label>
+            ))}
+          </div>
+          <p id="program-error" class="field-error" hidden>Pilih salah satu program.</p>
+
+        </fieldset>
+
+        {programs.map((p) => (
+          <fieldset data-offers-for={p.slug} hidden>
+            <legend class="text-lg font-bold text-ink">Pilih paket atau pelatihan · {p.name}</legend>
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+              {getOffers(p).map((o) => (
+                <label class:list={[
+                  'group flex cursor-pointer items-center gap-3 rounded-2xl border border-line bg-white p-4 transition-colors hover:border-navy-200 has-[:checked]:border-navy-800 has-[:checked]:bg-navy-50 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-sea-600',
+                  o.paket && 'sm:col-span-2',
+                ]}>
+                  <input type="radio" name={`offer-${p.slug}`} value={o.id} class="sr-only" data-price={o.price} data-label={o.label} />
+                  <span class="min-w-0 flex-1">
+                    <span class="flex flex-wrap items-center gap-2 font-semibold text-ink">
+                      {o.label}
+                      {o.paket && p.sellTracks && <span class="rounded-full bg-gold-500 px-2 py-0.5 text-xs font-bold text-navy-900">Hemat</span>}
+                    </span>
+                    <span class="block text-sm">{o.paket ? `${o.hours} jam · 1 bulan · semua pelatihan` : `${o.hours} jam · 2 minggu`}</span>
+                  </span>
+                  <span class="font-bold text-ink tabular-nums">{formatRupiah(o.price)}</span>
+                  <span class="grid size-5 shrink-0 place-items-center rounded-full border-2 border-navy-200 group-has-[:checked]:border-navy-800" aria-hidden="true">
+                    <span class="size-2.5 rounded-full bg-navy-800 opacity-0 group-has-[:checked]:opacity-100"></span>
+                  </span>
+                </label>
+              ))}
+            </div>
+            <p class="field-error" data-offer-error hidden>Pilih paket lengkap atau salah satu pelatihan.</p>
+          </fieldset>
+        ))}
+
+        <fieldset>
+          <legend class="text-lg font-bold text-ink">Data diri</legend>
+          <div class="mt-4 grid gap-5 sm:grid-cols-2">
+            {fields.map((f) => (
+              <div>
+                <label for={f.id} class="field-label">{f.label}</label>
+                <input
+                  id={f.id}
+                  name={f.id}
+                  type={f.type}
+                  autocomplete={f.autocomplete}
+                  placeholder={f.placeholder}
+                  inputmode={'inputmode' in f ? f.inputmode : undefined}
+                  spellcheck={'spellcheck' in f ? 'false' : undefined}
+                  required
+                  class="field-input"
+                  aria-describedby={`${f.id}-error`}
+                />
+                <p id={`${f.id}-error`} class="field-error" hidden></p>
+              </div>
+            ))}
+          </div>
+        </fieldset>
+
+        <div class="flex flex-col gap-4 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p class="text-sm">Total</p>
+            <p class="text-2xl font-extrabold text-ink tabular-nums" id="total" aria-live="polite">—</p>
+            <p class="mt-1 flex gap-2 text-sm"><Icon name="shield-check" class="mt-0.5 size-4 shrink-0 text-sea-600" />Data hanya disimpan di browser ini (mode demo).</p>
+          </div>
+          <button type="submit" class="btn-primary text-base">Lanjut ke Pembayaran <Icon name="arrow-right" class="size-4" /></button>
+        </div>
+        <p id="form-status" class="field-error" role="alert" hidden></p>
+      </form>
+    </div>
+
+    <aside aria-label="Ringkasan" class="hidden lg:block">
+      <div class="card sticky top-24 p-6">
+        <h2 class="font-bold">Yang Anda dapatkan</h2>
+        <ul class="mt-4 space-y-3 text-[0.95rem]">
+          <li class="flex gap-2.5"><Icon name="book-open" class="mt-0.5 size-4 shrink-0 text-sea-600" />Modul pembelajaran digital</li>
+          <li class="flex gap-2.5"><Icon name="monitor" class="mt-0.5 size-4 shrink-0 text-sea-600" />Kelas online & praktik offline</li>
+          <li class="flex gap-2.5"><Icon name="message" class="mt-0.5 size-4 shrink-0 text-sea-600" />Forum diskusi & konsultasi</li>
+          <li class="flex gap-2.5"><Icon name="award" class="mt-0.5 size-4 shrink-0 text-sea-600" />Sertifikat bagi yang lulus</li>
+        </ul>
+        <div class="mt-6 rounded-xl bg-canvas p-4 text-sm leading-relaxed">
+          <p class="font-semibold text-ink">Langkah berikutnya</p>
+          <p class="mt-1">Selesaikan pembayaran via transfer bank atau QRIS dalam 1×24 jam setelah mendaftar.</p>
+        </div>
+      </div>
+    </aside>
+  </div>
+</Base>
+
+<script>
+  import { programs, formatRupiah } from '../data/programs';
+  import { add, makeKode, type Registration } from '../scripts/store';
+
+  const form = document.getElementById('form-daftar') as HTMLFormElement;
+  const radios = form.querySelectorAll<HTMLInputElement>('input[name="program"]');
+  const totalEl = document.getElementById('total')!;
+
+  const selectedProgram = () => programs.find((p) => p.slug === form.querySelector<HTMLInputElement>('input[name="program"]:checked')?.value);
+  const offerGroup = (slug: string) => form.querySelector<HTMLFieldSetElement>(`[data-offers-for="${slug}"]`)!;
+  const selectedOffer = (slug: string) => form.querySelector<HTMLInputElement>(`input[name="offer-${slug}"]:checked`);
+
+  const sync = () => {
+    const program = selectedProgram();
+    form.querySelectorAll<HTMLFieldSetElement>('[data-offers-for]').forEach((fs) => (fs.hidden = fs.dataset.offersFor !== program?.slug));
+    const offer = program && selectedOffer(program.slug);
+    totalEl.textContent = offer ? formatRupiah(Number(offer.dataset.price)) : '—';
+    if (program) document.getElementById('program-error')!.hidden = true;
+    if (offer) offerGroup(program!.slug).querySelector<HTMLElement>('[data-offer-error]')!.hidden = true;
+  };
+  form.addEventListener('change', sync);
+
+  const params = new URLSearchParams(location.search);
+  const presetRadio = Array.from(radios).find((r) => r.value === params.get('program'));
+  if (presetRadio) {
+    presetRadio.checked = true;
+    const presetOffer = form.querySelector<HTMLInputElement>(`input[name="offer-${presetRadio.value}"][value="${CSS.escape(params.get('pilihan') ?? '')}"]`);
+    if (presetOffer) presetOffer.checked = true;
+  }
+  // Program yang hanya punya paket langsung terpilih paketnya
+  form.querySelectorAll<HTMLFieldSetElement>('[data-offers-for]').forEach((fs) => {
+    const options = fs.querySelectorAll<HTMLInputElement>('input[type="radio"]');
+    if (options.length === 1) options[0].checked = true;
+  });
+  sync();
+
+  const MESSAGES: Record<string, (v: string) => string | null> = {
+    nama: (v) => (v.trim().length < 3 ? 'Masukkan nama lengkap Anda (minimal 3 huruf).' : null),
+    email: (v) => (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim()) ? 'Masukkan alamat email yang valid, contoh: nama@email.com.' : null),
+    hp: (v) => (!/^(\+62|62|0)8\d{7,12}$/.test(v.replace(/[\s-]/g, '')) ? 'Masukkan nomor HP yang valid, contoh: 081234567890.' : null),
+    institusi: (v) => (v.trim().length < 2 ? 'Masukkan nama kampus atau institusi Anda.' : null),
+  };
+
+  const showError = (id: string, msg: string | null) => {
+    const input = document.getElementById(id) as HTMLInputElement;
+    const err = document.getElementById(`${id}-error`)!;
+    err.textContent = msg ?? '';
+    err.hidden = !msg;
+    input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    return !msg;
+  };
+
+  Object.keys(MESSAGES).forEach((id) => {
+    const input = document.getElementById(id) as HTMLInputElement;
+    input.addEventListener('blur', () => {
+      if (input.value) showError(id, MESSAGES[id](input.value));
+    });
+    input.addEventListener('input', () => {
+      if (input.getAttribute('aria-invalid') === 'true') showError(id, MESSAGES[id](input.value));
+    });
+  });
+
+  let dirty = false;
+  let submitted = false;
+  form.addEventListener('input', () => (dirty = true));
+  window.addEventListener('beforeunload', (e) => {
+    if (dirty && !submitted) e.preventDefault();
+  });
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const data = new FormData(form);
+    const program = selectedProgram();
+    const offer = program && selectedOffer(program.slug);
+    let firstInvalid: HTMLElement | null = null;
+
+    document.getElementById('program-error')!.hidden = !!program;
+    if (!program) firstInvalid = radios[0];
+
+    if (program && !offer) {
+      const group = offerGroup(program.slug);
+      group.querySelector<HTMLElement>('[data-offer-error]')!.hidden = false;
+      firstInvalid ??= group.querySelector<HTMLInputElement>('input[type="radio"]');
+    }
+
+    for (const id of Object.keys(MESSAGES)) {
+      const ok = showError(id, MESSAGES[id](String(data.get(id) ?? '')));
+      if (!ok) firstInvalid ??= document.getElementById(id);
+    }
+
+    if (firstInvalid || !program || !offer) {
+      firstInvalid?.focus();
+      return;
+    }
+
+    const reg: Registration = {
+      kode: makeKode(program.code),
+      programSlug: program.slug,
+      offerId: offer.value,
+      offerLabel: offer.dataset.label!,
+      nama: String(data.get('nama')).trim(),
+      email: String(data.get('email')).trim(),
+      hp: String(data.get('hp')).replace(/[\s-]/g, ''),
+      institusi: String(data.get('institusi')).trim(),
+      amount: Number(offer.dataset.price),
+      status: 'menunggu_pembayaran',
+      createdAt: new Date().toISOString(),
+    };
+
+    const button = form.querySelector<HTMLButtonElement>('button[type="submit"]')!;
+    button.disabled = true;
+    button.textContent = 'Menyimpan…';
+
+    if (!add(reg)) {
+      const status = document.getElementById('form-status')!;
+      status.textContent = 'Data tidak dapat disimpan. Pastikan browser mengizinkan penyimpanan lokal (bukan mode privat), lalu coba lagi.';
+      status.hidden = false;
+      button.disabled = false;
+      button.textContent = 'Lanjut ke Pembayaran';
+      return;
+    }
+    submitted = true;
+    location.href = `/pembayaran?kode=${encodeURIComponent(reg.kode)}`;
+  });
+</script>

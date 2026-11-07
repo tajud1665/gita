@@ -1,0 +1,139 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/plus-jakarta-sans';
+
+/* Warna diambil dari logo GITA. Teal untuk teks memakai sea-600 (kontras 5.5:1),
+   emas hanya untuk latar tombol dengan teks navy (5.75:1), tidak untuk teks. */
+@theme {
+  --font-sans: 'Plus Jakarta Sans Variable', ui-sans-serif, system-ui, sans-serif;
+
+  --color-navy-50: #eef3fa;
+  --color-navy-100: #dce6f4;
+  --color-navy-200: #b9cbe6;
+  --color-navy-600: #234f8f;
+  --color-navy-700: #1b4785;
+  --color-navy-800: #0f3366;
+  --color-navy-900: #0a2349;
+  --color-navy-950: #061631;
+
+  --color-sea-50: #e8f5f5;
+  --color-sea-100: #cfeaeb;
+  --color-sea-300: #7cc4c8;
+  --color-sea-500: #1a9399;
+  --color-sea-600: #0e7479;
+  --color-sea-700: #0b5c60;
+
+  --color-gold-50: #fbf4e4;
+  --color-gold-100: #f6e6bf;
+  --color-gold-400: #e3b04b;
+  --color-gold-500: #d9a93f;
+  --color-gold-600: #b98a26;
+
+  --color-ink: #0a2349;
+  --color-body: #475569;
+  --color-line: #dce3ee;
+  --color-canvas: #f6f8fc;
+}
+
+@layer base {
+  html {
+    color-scheme: light;
+    scroll-behavior: smooth;
+    -webkit-tap-highlight-color: transparent;
+    /* Elemen yang difokus tidak tertutup header/CTA yang menempel */
+    scroll-padding-top: 5rem;
+    scroll-padding-bottom: 5rem;
+  }
+  a, button, label, summary, input, select {
+    touch-action: manipulation;
+  }
+  body {
+    @apply bg-white font-sans text-body antialiased;
+    font-feature-settings: 'ss01';
+  }
+  h1, h2, h3, h4 {
+    @apply text-ink;
+    text-wrap: balance;
+  }
+  p {
+    text-wrap: pretty;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-sea-600);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  [id] {
+    scroll-margin-top: 6rem;
+  }
+  /* Judul yang menerima fokus lewat skrip tidak perlu cincin fokus */
+  h1[tabindex='-1']:focus {
+    outline: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility container-page {
+  @apply mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8;
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-[0.95rem] font-semibold transition-[background-color,border-color,color,box-shadow,transform] duration-200 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60;
+}
+
+@utility btn-primary {
+  @apply btn bg-gold-500 text-navy-900 shadow-[0_1px_0_0_var(--color-gold-600)] hover:bg-gold-400;
+}
+
+@utility btn-navy {
+  @apply btn bg-navy-800 text-white hover:bg-navy-700;
+}
+
+@utility btn-outline {
+  @apply btn border border-navy-200 bg-white text-navy-800 hover:border-navy-800 hover:bg-navy-50;
+}
+
+@utility eyebrow {
+  @apply text-sm font-semibold tracking-wide text-sea-600 uppercase;
+}
+
+@utility section-title {
+  @apply mt-2 text-3xl font-bold tracking-tight sm:text-4xl;
+}
+
+@utility card {
+  @apply rounded-2xl border border-line bg-white;
+}
+
+@utility field-label {
+  @apply block text-sm font-semibold text-ink;
+}
+
+@utility field-input {
+  @apply mt-1.5 block min-h-11 w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-base text-ink placeholder:text-slate-400 transition-colors hover:border-navy-200 focus:border-sea-600 focus:outline-none focus-visible:outline-none focus:ring-3 focus:ring-sea-100 aria-[invalid=true]:border-red-600;
+}
+
+@utility field-error {
+  @apply mt-1.5 text-sm font-medium text-red-700;
+}
+
+@utility copy-btn {
+  @apply -my-2 -mr-2 inline-grid min-h-11 min-w-11 cursor-pointer place-items-center rounded-[0.6rem] text-navy-800 transition-colors duration-150 hover:bg-navy-50;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+}
