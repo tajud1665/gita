@@ -14,7 +14,7 @@ export const site = {
     // Data fiktif untuk demo — ganti dengan rekening asli sebelum dipakai sungguhan.
     bank: 'Bank Contoh',
     accountNumber: '0000 0000 0000',
-    accountName: 'GITA (Demo)',
+    // accountName: 'GITA (Demo)',
     deadlineHours: 24,
   },
 };
